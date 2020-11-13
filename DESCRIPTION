@@ -7,7 +7,20 @@ License: MIT + file LICENSE
 Imports: 
     config,
     golem,
-    shiny
+    shiny,
+    hamiltonThemes (>= 0.0.0.9000),
+    magrittr,
+    tidycovid19 (>= 0.0.0.9000),
+    R0,
+    bs4Dash,
+    dplyr,
+    ggplot2,
+    plotly,
+    shinyWidgets,
+    shinyjs
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
+Remotes: 
+    hamilton-institute/hamiltonThemes,
+    joachim-gassen/tidycovid19
