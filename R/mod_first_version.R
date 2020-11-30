@@ -73,12 +73,11 @@ mod_first_version_ui <- function(id){
               tabName = "Assumptions",
               get_assuption_text()
             )
-          ),
-          hamiltonThemes:::bs4dash_distill_footer()
+          )
         )
-      )
+      ),
+      footer = hamiltonThemes:::bs4dash_distill_footer()
     )
- 
   )
 }
     
