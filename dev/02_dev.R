@@ -44,7 +44,7 @@ usethis::use_test( "app" )
 # Documentation
 
 ## Vignette ----
-usethis::use_vignette("rEstCountry")
+usethis::use_vignette("hamiltonREstCountry")
 devtools::build_vignettes()
 
 ## Code coverage ----

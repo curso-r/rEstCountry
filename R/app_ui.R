@@ -35,7 +35,7 @@ golem_add_external_resources <- function(){
     favicon(ext = 'png'),
     bundle_resources(
       path = app_sys('app/www'),
-      app_title = 'rEstCountry'
+      app_title = 'hamiltonREstCountry'
     )
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert() 
@@ -45,7 +45,7 @@ golem_add_external_resources <- function(){
     favicon(),
     bundle_resources(
       path = system.file("distill", package = "hamiltonThemes"),
-      app_title = 'rEstCountry'
+      app_title = 'hamiltonREstCountry'
     )
   )
 }
