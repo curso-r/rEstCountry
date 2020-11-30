@@ -106,7 +106,7 @@ mod_first_version_server <- function(input, output, session){
       ) %>% 
       dplyr::select(date, cases, population) %>% 
       dplyr::filter(date >= input$date_end - 14, date <= input$date_end) %>% 
-      na.omit()
+      stats::na.omit()
     
     # COVID generation time
     GT = R0::generation.time(input$GD_dist, c(input$GT_mean, input$GT_sd))
@@ -158,9 +158,9 @@ mod_first_version_server <- function(input, output, session){
       a$font = list(size = 14)
     } else {
       if(input$R_method == "SB") {
-        R_est = signif(tail(estR0$estimates[[input$R_method]]$R, 1), 3)
-        R_low = signif(tail(estR0$estimates[[input$R_method]]$conf.int[1], 1), 3)
-        R_high = signif(tail(estR0$estimates[[input$R_method]]$conf.int[2], 1), 3)
+        R_est = signif(utils::tail(estR0$estimates[[input$R_method]]$R, 1), 3)
+        R_low = signif(utils::tail(estR0$estimates[[input$R_method]]$conf.int[1], 1), 3)
+        R_high = signif(utils::tail(estR0$estimates[[input$R_method]]$conf.int[2], 1), 3)
       } else {
         R_est = signif(estR0$estimates[[input$R_method]]$R, 3)
         R_low = signif(estR0$estimates[[input$R_method]]$conf.int[1], 3)

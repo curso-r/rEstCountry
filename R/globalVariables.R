@@ -1,0 +1,1 @@
+utils::globalVariables(c("country", "ecdc_cases", "cum_cases", "cases", "population"))

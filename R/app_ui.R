@@ -32,7 +32,7 @@ golem_add_external_resources <- function(){
    "distill", system.file("distill", package = "hamiltonThemes")
  )
   tags$head(
-    favicon(),
+    favicon(ext = 'png'),
     bundle_resources(
       path = app_sys('app/www'),
       app_title = 'rEstCountry'
