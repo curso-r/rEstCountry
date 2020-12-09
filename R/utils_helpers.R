@@ -22,3 +22,57 @@ get_assuption_text <- function(){
   
   )
 }
+
+find_data <- function(date_max, latest_data = latest, 
+                      current_country = current_country){
+  data_use <- latest_data %>% 
+    #dplyr::filter(country == current_country) %>% 
+    dplyr::mutate(cum_cases = ecdc_cases,
+                  cases = c(cum_cases[1], diff(ecdc_cases))) %>% 
+    dplyr::select(date, cases, country) %>% 
+    dplyr::filter(date >= date_max - 21, date <= date_max) %>% 
+    stats::na.omit() %>% 
+    dplyr::group_by(country) %>% 
+    dplyr::mutate(
+      n_ind = 1:dplyr::n(), 
+      R_name = paste0("R", n_ind)) %>% 
+    dplyr::select(-date) %>% 
+    dplyr::arrange(country) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::as_tibble() %>% 
+    tidyr::complete(R_name, fill = list(cases = NA)) %>% 
+    dplyr::group_by(country) %>% 
+    dplyr::arrange(country, n_ind) %>% 
+    tidyr::fill(cases, .direction = "down") %>% 
+    dplyr::select(-n_ind) %>% 
+    tidyr::spread(R_name, cases) %>% 
+    dplyr::ungroup() 
+  
+  # df_remove <-  latest_data %>% 
+  #   dplyr::mutate(cum_cases = ecdc_cases,
+  #                 cases = c(cum_cases[1], diff(ecdc_cases))) %>% 
+  #   dplyr::select(date, cases, country) %>% 
+  #   dplyr::filter(date >= date_max - 22, date <= date_max) %>% 
+  #   na.omit() %>% 
+  #   dplyr::group_by(country) %>% 
+  #   dplyr::summarise(s = sum(cases)) %>% 
+  #   dplyr::filter(s == 0) %>% 
+  #   dplyr::pull(country)
+  # 
+  # data_use %>% 
+  #   dplyr::filter(!(country %in% df_remove))
+  data_use
+}
+
+pred_country <- function(data, rf_model = model){
+  #data[, -1] <- scale(data[, -1])
+  pred.R <- predict(rf_model, data = data,
+                    type = 'quantiles')
+  df <- data.frame(
+    low = pred.R$predictions[,1],
+    upp = pred.R$predictions[,3],
+    pred = pred.R$predictions[,2]
+  ) %>% 
+    dplyr::bind_cols(data)
+  df
+}

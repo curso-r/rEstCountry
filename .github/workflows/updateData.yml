@@ -1,0 +1,31 @@
+# This workflow deploys the app on push or pull request
+
+name: updateData
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  schedule:
+  - cron: "0 6 * * *"
+
+jobs:
+  deploy:
+    name: Updating r0_predictions.R
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-r@master
+      - name: Install packages
+        run: |
+          Rscript -e "install.packages(c('rsconnect', 'remotes', 'tidyverse', 'usethis', 'ranger'), type = 'binary')"
+          Rscript -e "remotes::install_github('joachim-gassen/tidycovid19')"
+      - name: Run r0_predictions.R and deploy
+        run: |
+          Rscript data-raw/r0_predictions.R ${{secrets.SHINYAPPS_TOKEN}} ${{secrets.SHINYAPPS_SECRET}}
+      - name: Commit results
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add . || echo "No changes to commit"
+          git commit -m 'updating data' || echo "No changes to commit"
+          git push origin || echo "No changes to commit"

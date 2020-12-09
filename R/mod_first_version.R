@@ -1,5 +1,4 @@
 latest <- tidycovid19::download_merged_data(silent = TRUE, cached = TRUE)
-
 #' first_version UI Function
 #'
 #' @description A shiny Module.
@@ -21,9 +20,11 @@ mod_first_version_ui <- function(id){
         fluidRow(
           column(
             width = 3,
-            shinyjs::useShinyjs(),
-            dateInput(ns("date_end"), "End of two week period to estimate R:",
+            # shinyjs::useShinyjs(),
+            dateInput(ns("date_end"), "Date for estimated  R:",
                       value = max(latest$date),
+                      max = Sys.Date(),
+                      min = Sys.Date() - 45,
                       format = "dd/mm/yyyy"),
             
             shinyWidgets::pickerInput(ns("sel_cty"),
@@ -32,32 +33,32 @@ mod_first_version_ui <- function(id){
                         selected = c('Ireland'),
                         options = list(`actions-box` = TRUE,
                                        `live-search` = TRUE),
-                        multiple = FALSE),
-            actionButton(inputId = ns("button"), label = "show extra options"),
-            
-            shinyWidgets::pickerInput(ns("R_method"),
-                        "Method for computing R",
-                        choices = c("EG", "ML", "SB"),
-                        selected = c('SB'),
-                        multiple = FALSE),
-            
-            shinyWidgets::pickerInput(ns("GD_dist"),
-                        "Generation time distribution", 
-                        choices = c("gamma", "weibull", "lognormal"),
-                        selected = c('gamma'),
-                        multiple = FALSE),
-            
-            numericInput(inputId = ns("GT_mean"),
-                         label = "Generation time mean",
-                         value = 3.0),
-            
-            numericInput(inputId = ns("GT_sd"),
-                         label = "Generation time standard deviation",
-                         value = 0.4),
-            
-            numericInput(inputId = ns("num_sim"),
-                         label = "Number of simulations to run (higher = slower but more accurate)",
-                         value = 200)
+                        multiple = FALSE)
+            # actionButton(inputId = ns("button"), label = "show extra options"),
+            # 
+            # shinyWidgets::pickerInput(ns("R_method"),
+            #             "Method for computing R",
+            #             choices = c("EG", "ML", "SB"),
+            #             selected = c('SB'),
+            #             multiple = FALSE),
+            # 
+            # shinyWidgets::pickerInput(ns("GD_dist"),
+            #             "Generation time distribution", 
+            #             choices = c("gamma", "weibull", "lognormal"),
+            #             selected = c('gamma'),
+            #             multiple = FALSE),
+            # 
+            # numericInput(inputId = ns("GT_mean"),
+            #              label = "Generation time mean",
+            #              value = 3.0),
+            # 
+            # numericInput(inputId = ns("GT_sd"),
+            #              label = "Generation time standard deviation",
+            #              value = 0.4),
+            # 
+            # numericInput(inputId = ns("num_sim"),
+            #              label = "Number of simulations to run (higher = slower but more accurate)",
+            #              value = 200)
           ),
           bs4Dash::bs4TabCard(
             width = 9,
@@ -87,42 +88,39 @@ mod_first_version_ui <- function(id){
 mod_first_version_server <- function(input, output, session){
   ns <- session$ns
   
-  observeEvent(input$button, {
-    shinyjs::toggle("R_method")
-    shinyjs::toggle("GD_dist")
-    shinyjs::toggle("GT_mean")
-    shinyjs::toggle("GT_sd")
-    shinyjs::toggle("num_sim")
-  }, ignoreNULL = FALSE)
+  # observeEvent(input$button, {
+  #   shinyjs::toggle("R_method")
+  #   shinyjs::toggle("GD_dist")
+  #   shinyjs::toggle("GT_mean")
+  #   shinyjs::toggle("GT_sd")
+  #   shinyjs::toggle("num_sim")
+  # }, ignoreNULL = FALSE)
   
   
   output$R_estim <- plotly::renderPlotly({
-    data_use <- latest %>% 
-      dplyr::filter(country == input$sel_cty) %>% 
-      dplyr::mutate(
-        cum_cases = ecdc_cases,
-        cases = c(cum_cases[1], diff(ecdc_cases))
-      ) %>% 
-      dplyr::select(date, cases, population) %>% 
-      dplyr::filter(date >= input$date_end - 14, date <= input$date_end) %>% 
-      stats::na.omit()
+     
+    current_country <- input$sel_cty
+    date_max <- input$date_end
     
-    # COVID generation time
-    GT = R0::generation.time(input$GD_dist, c(input$GT_mean, input$GT_sd))
+    latest_filter <- latest %>% 
+      dplyr::filter(country == current_country) %>% 
+      dplyr::mutate(cum_cases = ecdc_cases,
+             cases = c(cum_cases[1], diff(ecdc_cases))) %>%
+      dplyr::select(date, cases, population) %>%
+      dplyr::filter(date >= date_max - 14, date <= date_max) %>%
+      na.omit()
     
-    estR0 = try(R0::estimate.R(
-      epid = data_use$cases,
-      t = data_use$date, 
-      begin = as.integer(1),
-      end = as.integer(length(data_use$cases)),
-      GT = GT, 
-      methods = input$R_method, 
-      pop.size = data_use$population[1], 
-      nsim = input$num_sim
-    ), silent = TRUE)
+    estR0 = r0_predictions %>%
+      dplyr::filter(country == current_country) 
+    
+    n_dates <- seq.Date(Sys.Date() - nrow(estR0) + 1, Sys.Date(),  by = 1)
     
     
-    p = ggplot2::ggplot(data = data_use, ggplot2::aes(x = date, y = cases)) + 
+    estR0 = estR0 %>% 
+      dplyr::mutate(date = n_dates) %>% 
+      dplyr::filter(date == date_max)
+    
+    p = ggplot2::ggplot(data = latest_filter, ggplot2::aes(x = date, y = cases)) + 
       ggplot2::geom_point() + 
       ggplot2::labs(
         x = 'Date',
@@ -148,26 +146,17 @@ mod_first_version_server <- function(input, output, session){
       font = list(size = 20)
     )
     
-    # shiny::validate(
-    #   shiny::need(class(estR0) != "try-error", "Case values or date range not appropriate for R0 estimation using this method.")
-    # )
-    
-    if(class(estR0) == "try-error" | any(data_use$cases < 10)) {
+    if(nrow(estR0) == 0) {
       a$text = "R0 not estimated (bad case values or date range)"
       a$font = list(size = 14)
     } else {
-      if(input$R_method == "SB") {
-        R_est = signif(utils::tail(estR0$estimates[[input$R_method]]$R, 1), 3)
-        R_low = signif(utils::tail(estR0$estimates[[input$R_method]]$conf.int[1], 1), 3)
-        R_high = signif(utils::tail(estR0$estimates[[input$R_method]]$conf.int[2], 1), 3)
-      } else {
-        R_est = signif(estR0$estimates[[input$R_method]]$R, 3)
-        R_low = signif(estR0$estimates[[input$R_method]]$conf.int[1], 3)
-        R_high = signif(estR0$estimates[[input$R_method]]$conf.int[2], 3)
-      }
+      #if(input$R_method == "SB") {
+      R_est = signif(estR0$pred, 3)
+      R_low = signif(estR0$low, 3)
+      R_high = signif(estR0$upp, 3)
       
-      a$text = paste0("R = ", R_est,
-                      " (95% CI: ", R_low,', ',
+      a$text = paste0("Estimated R = ", R_est,
+                      ",  10-90 Quantile Interval: (", R_low,', ',
                       R_high, ')')
     }
     plotly::ggplotly(p) %>% plotly::layout(annotations = a) 
