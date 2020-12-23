@@ -7,7 +7,7 @@
 #' @noRd 
 #'
 #' @importFrom shiny NS tagList 
-mod_first_version_ui <- function(id){
+mod_first_version_ui <- function(id, latest){
   ns <- NS(id)
   tagList(
     bs4Dash::dashboardPage(
@@ -22,7 +22,7 @@ mod_first_version_ui <- function(id){
             # shinyjs::useShinyjs(),
             dateInput(ns("date_end"), "Date for estimated  R:",
                       value = max(latest$date),
-                      max = Sys.Date(),
+                      max = max(latest$date),
                       min = Sys.Date() - 45,
                       format = "dd/mm/yyyy"),
             
@@ -85,7 +85,7 @@ mod_first_version_ui <- function(id){
 #' first_version Server Function
 #'
 #' @noRd 
-mod_first_version_server <- function(input, output, session){
+mod_first_version_server <- function(input, output, session, latest){
   ns <- session$ns
   
   # observeEvent(input$button, {

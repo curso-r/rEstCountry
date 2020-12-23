@@ -5,7 +5,4 @@
 pkgload::load_all(export_all = FALSE,helpers = FALSE,attach_testthat = FALSE)
 options( "golem.app.prod" = TRUE)
 
-latest <- tidycovid19::download_merged_data(silent = TRUE, cached = TRUE) %>% 
-  dplyr::filter(!is.na(ecdc_cases))
-
 hamiltonREstCountry::run_app() # add parameters here (if any)

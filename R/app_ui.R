@@ -5,12 +5,14 @@
 #' @import shiny
 #' @noRd
 app_ui <- function(request) {
+  latest <- tidycovid19::download_merged_data(silent = TRUE, cached = TRUE) %>% 
+    dplyr::filter(!is.na(ecdc_cases))
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # List the first level UI elements here 
     fluidPage(
-      mod_first_version_ui("first_version_ui_1")
+      mod_first_version_ui("first_version_ui_1", latest)
     )
   )
 }
