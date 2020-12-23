@@ -1,4 +1,3 @@
-latest <- tidycovid19::download_merged_data(silent = TRUE, cached = TRUE)
 #' first_version UI Function
 #'
 #' @description A shiny Module.
@@ -68,7 +67,8 @@ mod_first_version_ui <- function(id){
             collapsible = FALSE,
             bs4Dash::bs4TabPanel(
               tabName = "Estimation",
-              plotly::plotlyOutput(ns("R_estim")) %>% hamiltonThemes::distill_load_spinner()
+              plotly::plotlyOutput(ns("R_estim")) %>% 
+                hamiltonThemes::distill_load_spinner()
             ),
             bs4Dash::bs4TabPanel(
               tabName = "Assumptions",
@@ -96,14 +96,13 @@ mod_first_version_server <- function(input, output, session){
   #   shinyjs::toggle("num_sim")
   # }, ignoreNULL = FALSE)
   
-  
   output$R_estim <- plotly::renderPlotly({
      
     current_country <- input$sel_cty
     date_max <- input$date_end
     
     latest_filter <- latest %>% 
-      dplyr::filter(country == current_country) %>% 
+      dplyr::filter(country == current_country) %>%
       dplyr::mutate(cum_cases = ecdc_cases,
              cases = c(cum_cases[1], diff(ecdc_cases))) %>%
       dplyr::select(date, cases, population) %>%
@@ -120,7 +119,10 @@ mod_first_version_server <- function(input, output, session){
       dplyr::mutate(date = n_dates) %>% 
       dplyr::filter(date == date_max)
     
-    p = ggplot2::ggplot(data = latest_filter, ggplot2::aes(x = date, y = cases)) + 
+    p <- ggplot2::ggplot(
+      data = latest_filter, 
+      ggplot2::aes(x = date, y = cases)
+    ) + 
       ggplot2::geom_point() + 
       ggplot2::labs(
         x = 'Date',
@@ -159,7 +161,8 @@ mod_first_version_server <- function(input, output, session){
                       ",  10-90 Quantile Interval: (", R_low,', ',
                       R_high, ')')
     }
-    plotly::ggplotly(p) %>% plotly::layout(annotations = a) 
+    plotly::ggplotly(p) %>% 
+      plotly::layout(annotations = a) 
   })
 }
     
