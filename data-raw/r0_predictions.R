@@ -9,7 +9,7 @@ suppressPackageStartupMessages({
   library(ranger) # For making predictions 
 })
 
-usethis::ui_todo("Downloading last data...")
+message("Downloading last data...")
 latest <- download_merged_data(silent = TRUE, cached = TRUE)
 
 find_data <- function(latest_data = latest) {
@@ -51,7 +51,7 @@ find_data <- function(latest_data = latest) {
 countries <- latest %>% 
   split(.$country)
 
-usethis::ui_todo("Finding data for each country...")
+message("Finding data for each country...")
 all_countries_data  <- countries %>% 
   purrr:::map(safely(find_data))
 
@@ -61,7 +61,7 @@ df <- all_countries_data %>%
 
 
 # This model uses the last 21 days of R 
-usethis::ui_todo("Loading model...")
+message("Loading model...")
 model <-  read_rds("data-raw/est_R0_final_model_comp.rds")
 pred_country <- function(data, rf_model = model){
   pred.R <- predict(rf_model, data = data,
@@ -75,7 +75,7 @@ pred_country <- function(data, rf_model = model){
   df
 }
 
-usethis::ui_todo("Making predictions...")
+message("Making predictions...")
 r0_predictions <- pred_country(df)
 
 usethis::use_data(r0_predictions, overwrite = TRUE)
@@ -83,20 +83,20 @@ usethis::use_data(r0_predictions, overwrite = TRUE)
 
 ## Deploy app
 
-# remotes::install_deps(dependencies = TRUE)
-# 
-# rsconnect::setAccountInfo(
-#   name = 'apmuhamilton',
-#   token = args[1],
-#   secret= args[2]
-# )
-# 
-# files <- list.files('.')
-# files <- files[files != 'data-raw']
-# 
-# rsconnect::deployApp(
-#   appFiles = files,
-#   appName = 'hamiltonREstCountry',
-#   forceUpdate = TRUE,
-#   account = 'apmuhamilton'
-# )
+remotes::install_deps(dependencies = TRUE, upgrade = "never")
+
+rsconnect::setAccountInfo(
+  name = 'apmuhamilton',
+  token = args[1],
+  secret= args[2]
+)
+
+files <- list.files('.')
+files <- files[files != 'data-raw']
+
+rsconnect::deployApp(
+  appFiles = files,
+  appName = 'hamiltonREstCountry',
+  forceUpdate = TRUE,
+  account = 'apmuhamilton'
+)

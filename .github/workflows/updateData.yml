@@ -7,6 +7,7 @@ name: updateData
 on:
   schedule:
   - cron: "0 6 * * *"
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -17,7 +18,8 @@ jobs:
       - uses: r-lib/actions/setup-r@master
       - name: Install packages
         run: |
-          Rscript -e "install.packages(c('rsconnect', 'remotes', 'tidyverse', 'usethis', 'ranger'), type = 'binary')"
+          Rscript -e "install.packages(c('rsconnect', 'remotes', 'tidyverse', 'ranger', 'gh', 'git2r'), type = 'binary')"
+          Rscript -e "install.packages('https://cran.r-project.org/src/contrib/Archive/usethis/usethis_1.6.3.tar.gz', repos=NULL, type='source')"
           Rscript -e "remotes::install_github('joachim-gassen/tidycovid19')"
       - name: Run r0_predictions.R and deploy
         run: |
