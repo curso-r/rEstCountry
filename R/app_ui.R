@@ -6,7 +6,7 @@
 #' @noRd
 app_ui <- function(request) {
   latest <- tidycovid19::download_merged_data(silent = TRUE, cached = TRUE) %>% 
-    dplyr::filter(!is.na(ecdc_cases))
+    dplyr::filter(!is.na(confirmed))
   tagList(
     # Leave this function for adding external resources
     golem_add_external_resources(),

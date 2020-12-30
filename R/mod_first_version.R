@@ -103,8 +103,8 @@ mod_first_version_server <- function(input, output, session, latest){
     
     latest_filter <- latest %>% 
       dplyr::filter(country == current_country) %>%
-      dplyr::mutate(cum_cases = ecdc_cases,
-             cases = c(cum_cases[1], diff(ecdc_cases))) %>%
+      dplyr::mutate(cum_cases = confirmed,
+             cases = c(cum_cases[1], diff(confirmed))) %>%
       dplyr::select(date, cases, population) %>%
       dplyr::filter(date >= date_max - 14, date <= date_max) %>%
       na.omit()

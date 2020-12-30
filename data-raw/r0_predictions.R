@@ -18,8 +18,8 @@ find_data <- function(latest_data = latest) {
   
   all_data <- function(date_maxx){
     latest_data %>% 
-      dplyr::mutate(cum_cases = ecdc_cases,
-                    cases = c(cum_cases[1], diff(ecdc_cases))) %>% 
+      dplyr::mutate(cum_cases = confirmed,
+                    cases = c(cum_cases[1], diff(confirmed))) %>% 
       dplyr::select(date, cases, country) %>% 
       dplyr::filter(date >= date_maxx - 21, date <= date_maxx) %>% 
       na.omit() %>% 
