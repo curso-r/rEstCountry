@@ -78,7 +78,7 @@ pred_country <- function(data, rf_model = model){
 message("Making predictions...")
 r0_predictions <- pred_country(df)
 
-usethis::use_data(r0_predictions, overwrite = TRUE)
+save(r0_predictions, file = "data/r0_predictions.rda")
 
 
 ## Deploy app
